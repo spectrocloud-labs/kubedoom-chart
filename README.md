@@ -4,13 +4,13 @@ A simple helm chart for demos and examples that embeds noVNC + kubedoom for a "q
 
 ## How to use
 
-With helm:
+### `helm`:
 
 ```bash
 helm install kubedoom https://github.com/spectrocloud-labs/kubedoom-chart/releases/download/kubedoom-helmchart-0.0.1/kubedoom-helmchart-0.0.1.tgz --set kubedoom_namespace=kube-system
 ```
 
-or with helm controller:
+### `helm` controller:
 
 ```yaml
 apiVersion: helm.cattle.io/v1
@@ -23,6 +23,13 @@ spec:
   set:
     kubedoom_namespace: "kube-system"
 ```
+
+### `kubectl`
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/spectrocloud-labs/kubedoom-chart/main/manifest.yaml
+```
+
 ## References
 
 - https://github.com/storax/kubedoom  
