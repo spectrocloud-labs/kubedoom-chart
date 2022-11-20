@@ -1,0 +1,12 @@
+apiVersion: v2
+name: kubedoom-helmchart
+description: A Helm chart for kubedoom and noVNC
+icon: 
+type: application
+home: 
+maintainers:
+- name: Ettore Di Giacinto
+  email: mudler@kairos.io
+
+version: 0.0.1
+appVersion: "v0.0.1"
