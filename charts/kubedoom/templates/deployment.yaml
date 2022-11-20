@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: kubedoom
+    name: '{{ include "helm-chart.fullname" . }}-kubedoom'
+    namespace: '{{.Release.Namespace}}'
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: kubedoom
+    template:
+        metadata:
+            labels:
+                app: kubedoom
+        spec:
+            hostNetwork: true
+            serviceAccountName: '{{ include "helm-chart.serviceAccountName" . }}'
+            containers:
+              - image: ghcr.io/storax/kubedoom:latest
+                env:
+                  - name: NAMESPACE
+                    value: '{{ .Values.kubedoom_namespace | default "default" }}'
+                name: kubedoom
+                ports:
+                  - containerPort: 5900
+                    name: vnc
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+    namespace: '{{.Release.Namespace}}'
+    name: '{{ include "helm-chart.fullname" . }}-novnc'
+    labels:
+        app: novnc
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: novnc
+    template:
+        metadata:
+            labels:
+                app: novnc
+        spec:
+            containers:
+              - image: jhankins/docker-novnc:latest
+                imagePullPolicy: IfNotPresent
+                name: novnc
+                args:
+                  - --vnc
+                  - {{ include "helm-chart.fullname" . }}-kubedoom.{{.Release.Namespace}}.svc.cluster.local:5900
+                ports:
+                  - name: novnc
+                    containerPort: 6080
+            restartPolicy: Always

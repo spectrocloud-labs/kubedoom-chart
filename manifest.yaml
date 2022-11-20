@@ -1,0 +1,105 @@
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubedoom
+  namespace: kubedoom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubedoom
+  namespace: kubedoom
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      name: novnc
+      port: 5900
+  selector:
+    app: kubedoom
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubedoom
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: kubedoom
+    namespace: kubedoom
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kubedoom
+  name: kubedoom
+  namespace: kubedoom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubedoom
+  template:
+    metadata:
+      labels:
+        app: kubedoom
+    spec:
+      hostNetwork: true
+      serviceAccountName: kubedoom
+      containers:
+        - image: ghcr.io/storax/kubedoom:latest
+          env:
+            - name: NAMESPACE
+              value: default
+          name: kubedoom
+          ports:
+            - containerPort: 5900
+              name: vnc
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: kubedoom
+  name: novnc
+  labels:
+    app: novnc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: novnc
+  template:
+    metadata:
+      labels:
+        app: novnc
+    spec:
+      containers:
+        - image: jhankins/docker-novnc:latest
+          imagePullPolicy: IfNotPresent
+          name: novnc
+          args:
+            - --vnc
+            - kubedoom.kubedoom.svc.cluster.local:5900
+          ports:
+            - name: novnc
+              containerPort: 6080
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: novnc
+  namespace: kubedoom
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      name: novnc
+      port: 6080
+  selector:
+    app: novnc
